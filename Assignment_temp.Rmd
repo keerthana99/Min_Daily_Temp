@@ -1,0 +1,88 @@
+---
+title: "temp_Assignment"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+#Minimum Daily Temperature Dataset
+
+```{r echo=FALSE}
+#install.packages("tseries")
+library(ggplot2)
+library(tseries)
+library(tidyverse)
+library(tsibble)
+library(dplyr)
+library(lubridate)
+library(feasts)
+library(imputeTS)
+```
+
+
+```{r echo=FALSE}
+data<-read.csv("C:/Users/LATHA/Downloads/Tempdatanew.csv",stringsAsFactors = FALSE)
+head(data)
+```
+
+```{r echo=FALSE}
+summary(data)
+```
+```{r echo=FALSE}
+str(data)
+```
+
+
+
+```{r echo=FALSE}
+data %>%
+  mutate(date = as_date(Date)) %>%
+  as_tsibble(index = date)-> temp_tsbl
+
+```
+
+
+```{r echo=FALSE}
+has_gaps(temp_tsbl, .full = TRUE)
+
+
+temp_gaps <- temp_tsbl %>% 
+  count_gaps(.full = TRUE)
+temp_gaps
+
+temp_full <- temp_tsbl %>% 
+  fill_gaps(.full = TRUE)
+
+temp_gaps <- temp_full %>% 
+  count_gaps(.full = TRUE)
+temp_gaps
+
+
+```
+```{r echo=FALSE}
+autoplot(temp_full,Temp)+ labs(title= "Temp graph")
+```
+```{r echo=FALSE, warning=FALSE}
+temp_full %>%
+  gg_season(Temp, labels = "both",period = "year") + labs(title = "Yearly Seasonal Graph")
+
+```
+
+
+```{r echo=FALSE}
+temp_full %>%
+    ACF(Temp) %>%
+    autoplot() + labs(title = "Autocorrelation for Temp")
+```
+
+
+```{r echo=FALSE}
+dat<-ts(data[-1], frequency=7, start=c(1981,1,1), end = c(1990,12,31))
+trends<-decompose(dat, "multiplicative")
+plot(trends)
+```
